@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  managers  Manager[]
+}
+
+model Manager {
+  id          String   @id @default(cuid())
+  name        String
+  nationality String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+
+  universe    Universe @relation(fields: [universeId], references: [id])
+  universeId  String
+
+  club        Club?    @relation(fields: [clubId], references: [id])
+  clubId      String?
+
+  @@unique([userId, universeId])
+}
+
+model Universe {
+  id          String    @id @default(cuid())
+  name        String
+  isOnline    Boolean   @default(false)
+  roomCode    String?   @unique
+  currentDate DateTime  @default("2025-07-01T00:00:00.000Z")
+  dataPack    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  managers    Manager[]
+  clubs       Club[]
+  competitions Competition[]
+  fixtures    Fixture[]
+  players     Player[]
+}
+
+model Competition {
+  id          String   @id @default(cuid())
+  extId       Int      @unique
+  name        String
+  shortName   String
+  country     String
+  level       Int
+  reputation  Int
+  licensed    Boolean  @default(false)
+  
+  universe    Universe @relation(fields: [universeId], references: [id])
+  universeId  String
+
+  clubs       Club[]
+  fixtures    Fixture[]
+}
+
+model Club {
+  id          String   @id @default(cuid())
+  extId       Int      @unique
+  name        String
+  shortName   String
+  country     String
+  reputation  Int
+  budget      Float
+  stadium     String
+  licensed    Boolean  @default(false)
+
+  universe      Universe @relation(fields: [universeId], references: [id])
+  universeId    String
+
+  competition   Competition @relation(fields: [competitionId], references: [id])
+  competitionId String
+
+  players     Player[]
+  managers    Manager[]
+  homeFixtures Fixture[] @relation("HomeTeam")
+  awayFixtures Fixture[] @relation("AwayTeam")
+}
+
+model Player {
+  id            String   @id @default(cuid())
+  extId         Int      @unique
+  name          String
+  nationality   String
+  age           Int
+  position      String // e.g., GK, DC, ST
+  reputation    Int
+  value         Float
+  wage          Float
+  licensed      Boolean  @default(false)
+
+  // Attributes
+  pace          Int
+  shooting      Int
+  passing       Int
+  dribbling     Int
+  defending     Int
+  physical      Int
+
+  universe    Universe @relation(fields: [universeId], references: [id])
+  universeId  String
+
+  club        Club?    @relation(fields: [clubId], references: [id])
+  clubId      String? // Nullable for free agents
+}
+
+model Fixture {
+  id            String   @id @default(cuid())
+  date          DateTime
+  played        Boolean  @default(false)
+  homeScore     Int?
+  awayScore     Int?
+
+  universe      Universe @relation(fields: [universeId], references: [id])
+  universeId    String
+
+  competition   Competition @relation(fields: [competitionId], references: [id])
+  competitionId String
+
+  homeTeam      Club     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  homeTeamId    String
+  awayTeam      Club     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  awayTeamId    String
+
+  @@index([date])
+}

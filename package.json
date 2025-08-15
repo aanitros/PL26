@@ -1,0 +1,23 @@
+{
+  "name": "proleague-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --parallel dev",
+    "build": "pnpm --filter=@proleague/web build",
+    "start:api": "pnpm --filter=@proleague/api start",
+    "start:web": "pnpm --filter=@proleague/web dev",
+    "prisma:generate": "pnpm --filter=@proleague/api exec prisma generate",
+    "prisma:migrate": "pnpm --filter=@proleague/api exec prisma migrate dev",
+    "prisma:seed": "pnpm --filter=@proleague/api exec ts-node prisma/seed.ts",
+    "test": "pnpm --parallel test"
+  },
+  "devDependencies": {
+    "pnpm": "^9.1.0",
+    "typescript": "^5.5.3",
+    "ts-node": "^10.9.2"
+  }
+}
